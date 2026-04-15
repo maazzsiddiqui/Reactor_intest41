@@ -1,16 +1,26 @@
 package com.alchemain.rx.examples;
 
 import static org.mockito.Mockito.*;
+
 import static org.junit.Assert.*;
+
+
 
 import java.util.List;
 
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+
+import org.junit.Test;
+
+import org.mockito.ArgumentMatcher;
+
+import org.mockito.Mock;
+
+import org.mockito.MockitoAnnotations;
+
+import org.slf4j.Logger;
+
+import org.slf4j.LoggerFactory;
 /**
  * Simple examples showing how to use Mockito for testing.
  * Demonstrates basic mocking patterns used in unit tests.
@@ -70,22 +80,57 @@ public class MockitoExamplesTest {
     }
 
     @Test
-    public void demonstrateArgumentMatchers() {
-        log.info("=== Mockito Argument Matchers Examples ===");
-        
-        List<String> mockedList = mock(List.class);
-        
-        // Stubbing using argument matchers
-        when(mockedList.get(anyInt())).thenReturn("element");
-        when(mockedList.contains(argThat(s -> s.length() > 5))).thenReturn(true);
-        
-        assertEquals("element", mockedList.get(999));
-        assertTrue(mockedList.contains("very long string"));
-        assertFalse(mockedList.contains("short"));
-        
-        log.info("Argument matcher tests passed");
-    }
 
+        public void demonstrateArgumentMatchers() {
+
+            log.info("=== Mockito Argument Matchers Examples ===");
+
+            
+
+            List<String> mockedList = mock(List.class);
+
+            
+
+            // Stubbing using argument matchers
+
+            when(mockedList.get(anyInt())).thenReturn("element");
+
+            when(mockedList.contains(argThat(new ArgumentMatcher<String>() {
+
+            
+
+                            @Override
+
+            
+
+                            public boolean matches(Object argument) {
+
+            
+
+                                String s = (String) argument;
+
+            
+
+                                return s != null && s.length() > 5;
+
+            
+
+                            }
+
+            
+
+                        }))).thenReturn(true);
+            assertEquals("element", mockedList.get(999));
+
+            assertTrue(mockedList.contains("very long string"));
+
+            assertFalse(mockedList.contains("short"));
+
+            
+
+            log.info("Argument matcher tests passed");
+
+        }
     @Test
     public void demonstrateVerification() {
         log.info("=== Mockito Verification Examples ===");

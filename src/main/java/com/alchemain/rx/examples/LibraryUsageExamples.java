@@ -11,7 +11,7 @@ import org.apache.commons.io.IOUtils;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +21,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-
+// MongoDB imports commented out - requires mongodb-driver dependency
+// import com.mongodb.MongoClient;
+// import com.mongodb.client.MongoCollection;
+// import com.mongodb.client.MongoDatabase;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -32,9 +32,9 @@ import akka.actor.UntypedActor;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
-import lombok.Data;
-import lombok.Builder;
-import net.logstash.logback.encoder.LogstashEncoder;
+// Lombok imports commented out - requires lombok dependency
+// import lombok.Data;
+// import lombok.Builder;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -131,30 +131,51 @@ public class LibraryUsageExamples {
         log.info("Read from file: {}", readContent);
         
         // File size
-        long size = FileUtils.sizeOf(tempFile);
-        log.info("File size: {} bytes", size);
+        
+                long size = tempFile.length();
+        
+                log.info("File size: {} bytes", size);
     }
 
     /**
-     * Lombok examples (using @Data and @Builder annotations)
-     */
-    public void demonstrateLombokUsage() {
-        log.info("=== Lombok Examples ===");
-        
-        // Using @Builder
-        Person person = Person.builder()
-            .name("Jane Smith")
-            .age(25)
-            .email("jane@example.com")
-            .build();
-        
-        log.info("Created person with builder: {}", person);
-        
-        // Using generated getters/setters
-        person.setAge(26);
-        log.info("Updated age: {}", person.getAge());
-    }
 
+         * Lombok examples (using @Data and @Builder annotations)
+
+         * NOTE: Requires lombok dependency to be added to pom.xml
+
+         */
+
+        public void demonstrateLombokUsage() {
+
+            log.info("=== Lombok Examples ===");
+
+            log.warn("Lombok dependency not available - example skipped");
+
+            
+
+            // Using regular Java class instead
+
+            Person person = new Person();
+
+            person.setName("Jane Smith");
+
+            person.setAge(25);
+
+            person.setEmail("jane@example.com");
+
+            
+
+            log.info("Created person: {}", person);
+
+            
+
+            // Using generated getters/setters
+
+            person.setAge(26);
+
+            log.info("Updated age: {}", person.getAge());
+
+        }
     /**
      * SLF4J Logging examples
      */
@@ -193,9 +214,10 @@ public class LibraryUsageExamples {
         log.info("Request counter value: {}", requestCounter.count());
         
         // Timer example
-        Timer responseTimer = Metrics.timer("response.time", "endpoint", "/api/users");
-        Timer.Sample sample = Timer.start();
         
+                Timer responseTimer = Metrics.timer("response.time", "endpoint", "/api/users");
+        
+                Timer.Sample sample = Timer.start(Metrics.globalRegistry);
         // Simulate some work
         Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
         
@@ -225,66 +247,155 @@ public class LibraryUsageExamples {
             Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
             
         } finally {
-            system.terminate();
-        }
+            
+                    system.shutdown();
+            
+                }
     }
 
     /**
-     * Redis (Jedis) examples - requires Redis server running
-     */
-    public void demonstrateRedisUsage() {
-        log.info("=== Redis (Jedis) Examples ===");
-        
-        try (Jedis jedis = new Jedis("localhost", 6379)) {
-            // String operations
-            jedis.set("greeting", "Hello Redis!");
-            String value = jedis.get("greeting");
-            log.info("Redis get result: {}", value);
-            
-            // List operations
-            jedis.lpush("fruits", "apple", "banana", "cherry");
-            java.util.List<String> fruits = jedis.lrange("fruits", 0, -1);
-            log.info("Redis list: {}", fruits);
-            
-            // Set expiration
-            jedis.expire("greeting", 60); // Expire in 60 seconds
-            Long ttl = jedis.ttl("greeting");
-            log.info("TTL for greeting: {} seconds", ttl);
-            
-        } catch (Exception e) {
-            log.warn("Could not connect to Redis: {}", e.getMessage());
-        }
-    }
 
+         * Redis (Jedis) examples - requires Redis server running
+
+         */
+
+        public void demonstrateRedisUsage() {
+
+            log.info("=== Redis (Jedis) Examples ===");
+
+            
+
+            Jedis jedis = null;
+
+            try {
+
+                jedis = new Jedis("localhost", 6379);
+
+                
+
+                // String operations
+
+                jedis.set("greeting", "Hello Redis!");
+
+                String value = jedis.get("greeting");
+
+                log.info("Redis get result: {}", value);
+
+                
+
+                // List operations
+
+                jedis.lpush("fruits", "apple");
+
+                jedis.lpush("fruits", "banana");
+
+                jedis.lpush("fruits", "cherry");
+
+                java.util.List<String> fruits = jedis.lrange("fruits", 0, -1);
+
+                log.info("Redis list: {}", fruits);
+
+                
+
+                // Set expiration
+
+                jedis.expire("greeting", 60); // Expire in 60 seconds
+
+                Long ttl = jedis.ttl("greeting");
+
+                log.info("TTL for greeting: {} seconds", ttl);
+
+                
+
+            } catch (Exception e) {
+
+                log.warn("Could not connect to Redis: {}", e.getMessage());
+
+            } finally {
+
+            
+
+                            if (jedis != null) {
+
+            
+
+                                // Older Jedis versions use disconnect() instead of close()
+
+                                jedis.disconnect();
+
+            
+
+                            }
+
+            
+
+                        }
+        }
     /**
-     * MongoDB examples - requires MongoDB server running
-     */
-    public void demonstrateMongoUsage() {
-        log.info("=== MongoDB Examples ===");
-        
-        try (MongoClient mongoClient = new MongoClient("localhost", 27017)) {
-            MongoDatabase database = mongoClient.getDatabase("testdb");
-            MongoCollection<org.bson.Document> collection = database.getCollection("testcollection");
+
+         * MongoDB examples - requires MongoDB server running
+
+         * NOTE: Requires mongodb-driver dependency to be added to pom.xml
+
+         */
+
+        public void demonstrateMongoUsage() {
+
+            log.info("=== MongoDB Examples ===");
+
+            log.warn("MongoDB driver dependency not available - example skipped");
+
             
-            // Insert document
-            org.bson.Document doc = new org.bson.Document("name", "MongoDB Example")
-                .append("type", "database")
-                .append("version", "4.0");
-            
-            collection.insertOne(doc);
-            log.info("Inserted document into MongoDB");
-            
-            // Find document
-            org.bson.Document found = collection.find(new org.bson.Document("name", "MongoDB Example")).first();
-            if (found != null) {
-                log.info("Found document: {}", found.toJson());
+
+            // Uncomment when mongodb-driver dependency is added:
+
+            /*
+
+            try (MongoClient mongoClient = new MongoClient("localhost", 27017)) {
+
+                MongoDatabase database = mongoClient.getDatabase("testdb");
+
+                MongoCollection<org.bson.Document> collection = database.getCollection("testcollection");
+
+                
+
+                // Insert document
+
+                org.bson.Document doc = new org.bson.Document("name", "MongoDB Example")
+
+                    .append("type", "database")
+
+                    .append("version", "4.0");
+
+                
+
+                collection.insertOne(doc);
+
+                log.info("Inserted document into MongoDB");
+
+                
+
+                // Find document
+
+                org.bson.Document found = collection.find(new org.bson.Document("name", "MongoDB Example")).first();
+
+                if (found != null) {
+
+                    log.info("Found document: {}", found.toJson());
+
+                }
+
+                
+
+            } catch (Exception e) {
+
+                log.warn("Could not connect to MongoDB: {}", e.getMessage());
+
             }
-            
-        } catch (Exception e) {
-            log.warn("Could not connect to MongoDB: {}", e.getMessage());
-        }
-    }
 
+            */
+
+        }
     /**
      * Elasticsearch examples - requires Elasticsearch server running
      */
@@ -296,10 +407,25 @@ public class LibraryUsageExamples {
                 .put("cluster.name", "elasticsearch")
                 .build();
             
-            TransportClient client = new TransportClient(settings);
-            client.addTransportAddress(new InetSocketTransportAddress(
-                InetAddress.getByName("localhost"), 9300));
+            // Note: TransportClient is deprecated in ES 7.x+
             
+                        // TransportClient is abstract and cannot be instantiated directly in ES 5.x+
+            
+                        // Would need PreBuiltTransportClient or similar concrete implementation
+            
+                        
+            
+                        @SuppressWarnings("deprecation")
+            
+                        TransportClient client = null; // Cannot instantiate abstract TransportClient
+            
+                        
+            
+                        // In real usage, would use:
+            
+                        // TransportClient client = new PreBuiltTransportClient(settings);
+            
+                        // client.addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), 9300));
             // Index a document
             ObjectNode source = mapper.createObjectNode();
             source.put("title", "Elasticsearch Example");
@@ -307,10 +433,16 @@ public class LibraryUsageExamples {
             source.put("timestamp", System.currentTimeMillis());
             
             // Note: This is for older ES versions, newer versions have different APIs
-            log.info("Would index document: {}", source);
             
-            client.close();
+                        log.info("Would index document: {}", source);
             
+                        
+            
+                        if (client != null) {
+            
+                            client.close();
+            
+                        }
         } catch (Exception e) {
             log.warn("Could not connect to Elasticsearch: {}", e.getMessage());
         }
@@ -335,13 +467,76 @@ public class LibraryUsageExamples {
     }
 
     /**
-     * Example Lombok data class
-     */
-    @Data
-    @Builder
-    public static class Person {
-        private String name;
-        private int age;
-        private String email;
-    }
+
+         * Example data class (would use Lombok @Data and @Builder if dependency available)
+
+         */
+
+        public static class Person {
+
+            private String name;
+
+            private int age;
+
+            private String email;
+
+            
+
+            public String getName() {
+
+                return name;
+
+            }
+
+            
+
+            public void setName(String name) {
+
+                this.name = name;
+
+            }
+
+            
+
+            public int getAge() {
+
+                return age;
+
+            }
+
+            
+
+            public void setAge(int age) {
+
+                this.age = age;
+
+            }
+
+            
+
+            public String getEmail() {
+
+                return email;
+
+            }
+
+            
+
+            public void setEmail(String email) {
+
+                this.email = email;
+
+            }
+
+            
+
+            @Override
+
+            public String toString() {
+
+                return "Person{name='" + name + "', age=" + age + ", email='" + email + "'}";
+
+            }
+
+        }
 }
